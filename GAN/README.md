@@ -1,0 +1,2 @@
+This GAN model for image colorization was developed by zeruniverse (https://github.com/zeruniverse/neural-colorization.git) and slightly modified for our use.
+The last update of the model was in 2019, so it is not a state of the art model.

@@ -1,5 +1,5 @@
 import torch
-from model import generator
+from src.model import generator
 from torch.autograd import Variable
 from scipy.ndimage import zoom
 import cv2
@@ -9,48 +9,16 @@ import argparse
 import numpy as np
 from skimage.color import rgb2yuv,yuv2rgb
 
-def parse_args():
-    parser = argparse.ArgumentParser(description="Colorize images")
-    parser.add_argument("-i",
-                        "--input",
-                        type=str,
-                        required=True,
-                        help="input image/input dir")
-    parser.add_argument("-o",
-                        "--output",
-                        type=str,
-                        required=True,
-                        help="output image/output dir")
-    parser.add_argument("-m",
-                        "--model",
-                        type=str,
-                        required=True,
-                        help="location for model (Generator)")
-    parser.add_argument("--gpu",
-                        type=int,
-                        default=-1,
-                        help="which GPU to use? [-1 for cpu]")
-    args = parser.parse_args()
-    return args
 
-args = parse_args()
 
-G = generator()
-
-if args.gpu>=0:
-    G=G.cuda(args.gpu)
-    G.load_state_dict(torch.load(args.model))
-else:
-    G.load_state_dict(torch.load(args.model,map_location={'cuda:0': 'cpu'}))
-
-def inference(G,in_path,out_path):
+def inference(G,in_path,out_path = None):
     p=Image.open(in_path).convert('RGB')
     img_yuv = rgb2yuv(p)
     H,W,_ = img_yuv.shape
     infimg = np.expand_dims(np.expand_dims(img_yuv[...,0], axis=0), axis=0)
     img_variable = Variable(torch.Tensor(infimg-0.5))
-    if args.gpu>=0:
-        img_variable=img_variable.cuda(args.gpu)
+    if torch.cuda.is_available():
+        img_variable=img_variable.cuda(torch.cuda.current_device())
     res = G(img_variable)
     uv=res.cpu().detach().numpy()
     uv[:,0,:,:] *= 0.436
@@ -59,13 +27,34 @@ def inference(G,in_path,out_path):
     uv = zoom(uv,(1,1,H/H1,W/W1))
     yuv = np.concatenate([infimg,uv],axis=1)[0]
     rgb=yuv2rgb(yuv.transpose(1,2,0))
-    cv2.imwrite(out_path,(rgb.clip(min=0,max=1)*256)[:,:,[2,1,0]])
+    if out_path is not None:
+        cv2.imwrite(out_path,(rgb.clip(min=0,max=1)*256)[:,:,[2,1,0]])
+    else:
+        return rgb
+    
+def infer_dir(G, in_dir, out_dir):
+    """ 
+    colorizes a whole directory
+    """
+    if not os.path.isdir(out_dir):
+        os.makedirs(out_path)
+        print(f"created new directory {out_dir}")
+
+    for img in os.listdir(in_dir):
+        file_name = os.fsdecode(img)
+
+        if file_name.endswith(".jpg") or file_name.endswith(".jpeg"):
+            out_path = os.path.join(out_dir, file_name, "_col")
+            inference(G, img, out_path=out_path)
+            
+        else:
+            raise Warning(f"skipped file {file_name}, since it is not a jpg or jpeg")
 
 
-if not os.path.isdir(args.input):
-    inference(G,args.input,args.output)
-else:
-    if not os.path.exists(args.output):
-        os.makedirs(args.output)
-    for f in os.listdir(args.input):
-        inference(G,os.path.join(args.input,f),os.path.join(args.output,f))
+
+def load_model():
+    G = generator()
+    G.load_state_dict(torch.load("src/model.pth",map_location=torch.device('cpu')))
+    print("model has loaded sucessfully!")
+    return G
+
