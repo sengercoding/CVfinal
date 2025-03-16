@@ -33,11 +33,11 @@ def inference(G,in_path,out_path = None):
     else:
         return rgb
     
-def resize_bw(img, output_size=(512, 512)):
+def resize_bw(img, output_size=(256, 256)):
     zoom_factors = (output_size[0] / img.shape[0], output_size[1] / img.shape[1], 1)
     return zoom(img, zoom_factors, order=1) 
 
-def resize_rgb(img, output_size=(512, 512)):
+def resize_rgb(img, output_size=(256, 256)):
     h, w, c = img.shape
     zoom_factors = (output_size[0] / h, output_size[1] / w, 1)
     resized = zoom(img, zoom_factors, order=1)
@@ -47,7 +47,7 @@ def resize_rgb(img, output_size=(512, 512)):
     
 def colorize(G, img_bw):
     assert img_bw.ndim == 2, "black and white image array needs to be two dimensional"
-    if img_bw.shape != (512,512):
+    if img_bw.shape != (256,256):
         img_bw = resize_bw(img_bw)
     img_bw = Image.fromarray(img_bw).convert("RGB")
     img_yuv = rgb2yuv(img_bw)
@@ -70,7 +70,7 @@ def visualize(G, img):
     """
     Visualizes side-by-side the ground truth, grayscale and colorized image
     """
-    if img.shape != (512,512,3):
+    if img.shape != (256,256,3):
         img = resize_rgb(img)
         print("image has been resized!")
     img_bw = (rgb2gray(img)*255).astype(np.uint8)
@@ -87,9 +87,8 @@ def visualize(G, img):
     plt.show()
 
 
-def load_model():
+def load_generator():
     G = generator()
-    G.load_state_dict(torch.load("src/model.pth",map_location=torch.device('cpu')))
+    G.load_state_dict(torch.load("src/G.pth",map_location=torch.device('cpu')))
     print("model has loaded sucessfully!")
     return G
-
