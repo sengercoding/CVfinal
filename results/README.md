@@ -11,3 +11,5 @@ Results being screenshots of the training process and also comparison of real/ar
 ## First pass GAN training results on Flikr Faces Dataset
 
 ![GAN Faces 1st Pass](faces-results-gan-v1.png)
+![GAN Faces 1st Pass L1 Loss](training-gan-faces-v1.png)
+
