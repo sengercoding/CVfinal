@@ -1,94 +1,173 @@
 import torch
-from src.model import generator
-from torch.autograd import Variable
-from scipy.ndimage import zoom
-import cv2
-import os
-from PIL import Image
-import argparse
 import numpy as np
-from skimage.color import rgb2yuv,yuv2rgb,rgb2gray
 import matplotlib.pyplot as plt
+from torchvision import transforms
+from skimage.color import rgb2lab, lab2rgb
+from PIL import Image
 
+def lab_to_rgb(L, ab):
+    """
+    Takes a batch of images
+    """
+    
+    L = (L + 1.) * 50.
+    ab = ab * 110.
+    Lab = torch.cat([L, ab], dim=1).permute(0, 2, 3, 1).cpu().numpy()
+    rgb_imgs = []
+    for img in Lab:
+        img_rgb = lab2rgb(img)
+        rgb_imgs.append(img_rgb)
+    return np.stack(rgb_imgs, axis=0)
 
+def preprocess_image(image):
 
-def inference(G,in_path,out_path = None):
-    p=Image.open(in_path).convert('RGB')
-    img_yuv = rgb2yuv(p)
-    H,W,_ = img_yuv.shape
-    infimg = np.expand_dims(np.expand_dims(img_yuv[...,0], axis=0), axis=0)
-    img_variable = Variable(torch.Tensor(infimg-0.5))
-    if torch.cuda.is_available():
-        img_variable=img_variable.cuda(torch.cuda.current_device())
-    res = G(img_variable)
-    uv=res.cpu().detach().numpy()
-    uv[:,0,:,:] *= 0.436
-    uv[:,1,:,:] *= 0.615
-    (_,_,H1,W1) = uv.shape
-    uv = zoom(uv,(1,1,H/H1,W/W1))
-    yuv = np.concatenate([infimg,uv],axis=1)[0]
-    rgb=yuv2rgb(yuv.transpose(1,2,0))
-    if out_path is not None:
-        cv2.imwrite(out_path,(rgb.clip(min=0,max=1)*256)[:,:,[2,1,0]])
+    image = np.array(image) / 255.0  # Normalize to [0,1]
+    lab = rgb2lab(image).astype("float32")  # Convert to Lab
+    
+    transform = transforms.ToTensor()
+    lab_tensor = transform(lab)
+    
+    L = lab_tensor[[0], ...] / 50. - 1.  # Scale L to [-1, 1]
+    ab = lab_tensor[[1, 2], ...] / 110.  # Scale ab to [-1, 1]
+
+    return L.unsqueeze(0), ab.unsqueeze(0)  # Add batch dimension
+
+def colorize_image(model, image, return_L = False, save=False):
+    """
+    Colorize a single color image using the model and compare with the original.
+    
+    Args:
+        model: Trained colorization model.
+        image: PIL image (color).
+        save: Whether to save the output image.
+    """
+
+    model.net_G.eval()
+    
+    # Preprocess image: Extract real L and ab channels
+    L, ab = preprocess_image(image)
+    
+    # Move to the correct device
+    device = next(model.parameters()).device
+    L, ab = L.to(device, dtype=torch.float), ab.to(device, dtype=torch.float)
+
+    # Prepare input format
+    data = {'L': L, 'ab': ab}
+
+    with torch.no_grad():
+        model.setup_input(data)
+        model.forward()
+
+    model.net_G.train()
+    
+    # Get output
+    fake_color = model.fake_color.detach()  # Model predicts ab in [-1,1]
+    
+    # Convert back to Lab scale
+    L_real = (L + 1) * 50.0  # Convert L from [-1,1] to [0,100]
+    fake_color = fake_color * 110.0  # Convert ab from [-1,1] to [-110,110]
+
+    # Convert to NumPy
+    L_np = L_real[0][0].cpu().numpy()  # Shape: (H, W)
+    fake_ab_np = fake_color[0].cpu().numpy().transpose(1, 2, 0)  # Shape: (H, W, 2)
+
+    # Construct full Lab image
+    lab_img = np.zeros((L_np.shape[0], L_np.shape[1], 3))
+    lab_img[:, :, 0] = L_np  # Luminance
+    lab_img[:, :, 1:] = fake_ab_np  # Predicted color
+
+    # Convert Lab to RGB
+    rgb_img = lab2rgb(lab_img)
+    
+    if save:
+        rgb_img
+
+    if return_L:
+        return L_np, rgb_img
     else:
-        return rgb
+        return rgb_img
     
-def resize_bw(img, output_size=(256, 256)):
-    zoom_factors = (output_size[0] / img.shape[0], output_size[1] / img.shape[1], 1)
-    return zoom(img, zoom_factors, order=1) 
-
-def resize_rgb(img, output_size=(256, 256)):
-    h, w, c = img.shape
-    zoom_factors = (output_size[0] / h, output_size[1] / w, 1)
-    resized = zoom(img, zoom_factors, order=1)
-    return resized.astype(np.uint8)
 
 
+import torch
+import numpy as np
+import matplotlib.pyplot as plt
+from torchvision import transforms
+from skimage.color import rgb2lab, lab2rgb
+from PIL import Image
+
+def preprocess_image(image):
+
+    image = np.array(image) / 255.0  # Normalize to [0,1]
+    lab = rgb2lab(image).astype("float32")  # Convert to Lab
     
-def colorize(G, img_bw):
-    # assert img_bw.ndim == 2, "black and white image array needs to be two dimensional"
-    # if img_bw.shape != (256,256):
-    #     img_bw = resize_bw(img_bw)
-    img_bw = Image.fromarray(img_bw).convert("RGB")
-    img_yuv = rgb2yuv(img_bw)
-    H,W,_ = img_yuv.shape
-    infimg = np.expand_dims(np.expand_dims(img_yuv[...,0], axis=0), axis=0)
-    img_variable = Variable(torch.Tensor(infimg-0.5))
-    if torch.cuda.is_available():
-        img_variable=img_variable.cuda(torch.cuda.current_device())
-    res = G(img_variable)
-    uv=res.cpu().detach().numpy()
-    uv[:,0,:,:] *= 0.436
-    uv[:,1,:,:] *= 0.615
-    (_,_,H1,W1) = uv.shape
-    uv = zoom(uv,(1,1,H/H1,W/W1))
-    yuv = np.concatenate([infimg,uv],axis=1)[0]
-    rgb = yuv2rgb(yuv.transpose(1,2,0))
-    return rgb
+    transform = transforms.ToTensor()
+    lab_tensor = transform(lab)
+    
+    L = lab_tensor[[0], ...] / 50. - 1.  # Scale L to [-1, 1]
+    ab = lab_tensor[[1, 2], ...] / 110.  # Scale ab to [-1, 1]
 
-def visualize(G, img):
-    """
-    Visualizes side-by-side the ground truth, grayscale and colorized image
-    """
-    if img.shape != (256,256,3):
-        img = resize_rgb(img)
-        print("image has been resized!")
-    img_bw = (rgb2gray(img)*255).astype(np.uint8)
-    img_col = colorize(G,img_bw)
-    fig, (ax1,ax2,ax3) = plt.subplots(1,3, figsize=(12,5))
-    ax1.imshow(img)
-    ax1.set_title("ground truth")
-    ax2.imshow(img_bw, cmap="gray")
-    ax2.set_title("grayscale")
-    ax3.imshow(img_col)
-    ax3.set_title("colorized")
-    for ax in [ax1,ax2,ax3]:
-        ax.set_axis_off()
+    return L.unsqueeze(0), ab.unsqueeze(0)  # Add batch dimension
+
+def visualize_single(model, image, save=False):
+
+    model.net_G.eval()
+    
+    # Preprocess image: Extract real L and ab channels
+    L, ab = preprocess_image(image)
+    
+    # Move to the correct device
+    device = next(model.parameters()).device
+    L, ab = L.to(device, dtype=torch.float), ab.to(device, dtype=torch.float)
+
+    # Prepare input format
+    data = {'L': L, 'ab': ab}
+
+    with torch.no_grad():
+        model.setup_input(data)
+        model.forward()
+
+    model.net_G.train()
+    
+    # Get output
+    fake_color = model.fake_color.detach()  # Model predicts ab in [-1,1]
+    
+    # Convert back to Lab scale
+    L_real = (L + 1) * 50.0  # Convert L from [-1,1] to [0,100]
+    fake_color = fake_color * 110.0  # Convert ab from [-1,1] to [-110,110]
+
+    # Convert to NumPy
+    L_np = L_real[0][0].cpu().numpy()  # Shape: (H, W)
+    fake_ab_np = fake_color[0].cpu().numpy().transpose(1, 2, 0)  # Shape: (H, W, 2)
+
+    # Construct full Lab image
+    lab_img = np.zeros((L_np.shape[0], L_np.shape[1], 3))
+    lab_img[:, :, 0] = L_np  # Luminance
+    lab_img[:, :, 1:] = fake_ab_np  # Predicted color
+
+    # Convert Lab to RGB
+    rgb_img = lab2rgb(lab_img)
+
+    # Convert original image to NumPy for visualization
+    original_img = np.array(image) / 255.0  
+
+    # Plot results
+    fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+    ax[0].imshow(L_np, cmap='gray')
+    ax[0].set_title("Input Luminance (Grayscale)")
+    ax[0].axis("off")
+
+    ax[1].imshow(rgb_img)
+    ax[1].set_title("Colorized Output")
+    ax[1].axis("off")
+
+    ax[2].imshow(original_img)
+    ax[2].set_title("Original Image")
+    ax[2].axis("off")
+
     plt.show()
+    
+    if save:
+        fig.savefig(f"colorized_{time.time()}.png")
 
-
-def load_generator():
-    G = generator()
-    G.load_state_dict(torch.load("src/G.pth",map_location=torch.device('cpu')))
-    print("model has loaded sucessfully!")
-    return G
+    return rgb_img  # Return colorized image as NumPy array
