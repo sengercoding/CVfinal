@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 from torchvision import transforms
 from skimage.color import rgb2lab, lab2rgb
 from PIL import Image
+from time import time
 
 def lab_to_rgb(L, ab):
     """
@@ -32,14 +33,17 @@ def preprocess_image(image):
 
     return L.unsqueeze(0), ab.unsqueeze(0)  # Add batch dimension
 
-def colorize_image(model, image, return_L = False, save=False):
+def test_colorizer(model, image, return_L = False, save=False):
     """
-    Colorize a single color image using the model and compare with the original.
+    Turns an image into grayscale and colorizes it
     
-    Args:
-        model: Trained colorization model.
-        image: PIL image (color).
-        save: Whether to save the output image.
+    :param model: model that is being used
+    :param image: image in PIL.Image format
+    :param return_L (optional): returns grayscale version as well, used in visualization
+    :param save (optional): saves the image
+
+    :returns L (optional): L* channel (grayscale image)
+    :returns colorized: colorized image
     """
 
     model.net_G.eval()
@@ -47,11 +51,9 @@ def colorize_image(model, image, return_L = False, save=False):
     # Preprocess image: Extract real L and ab channels
     L, ab = preprocess_image(image)
     
-    # Move to the correct device
     device = next(model.parameters()).device
     L, ab = L.to(device, dtype=torch.float), ab.to(device, dtype=torch.float)
 
-    # Prepare input format
     data = {'L': L, 'ab': ab}
 
     with torch.no_grad():
@@ -63,65 +65,62 @@ def colorize_image(model, image, return_L = False, save=False):
     # Get output
     fake_color = model.fake_color.detach()  # Model predicts ab in [-1,1]
     
-    # Convert back to Lab scale
+    # Convert to L*a*b*
     L_real = (L + 1) * 50.0  # Convert L from [-1,1] to [0,100]
     fake_color = fake_color * 110.0  # Convert ab from [-1,1] to [-110,110]
 
-    # Convert to NumPy
     L_np = L_real[0][0].cpu().numpy()  # Shape: (H, W)
     fake_ab_np = fake_color[0].cpu().numpy().transpose(1, 2, 0)  # Shape: (H, W, 2)
 
-    # Construct full Lab image
     lab_img = np.zeros((L_np.shape[0], L_np.shape[1], 3))
     lab_img[:, :, 0] = L_np  # Luminance
     lab_img[:, :, 1:] = fake_ab_np  # Predicted color
 
-    # Convert Lab to RGB
+    # Convert to RGB
     rgb_img = lab2rgb(lab_img)
+    rgb_img = (rgb_img * 255).astype(np.uint8)
     
     if save:
-        rgb_img
+        Image.fromarray(rgb_img).save(f"colorized_{time()}")
 
     if return_L:
         return L_np, rgb_img
+    
     else:
         return rgb_img
     
 
 
-import torch
-import numpy as np
-import matplotlib.pyplot as plt
-from torchvision import transforms
-from skimage.color import rgb2lab, lab2rgb
-from PIL import Image
+def colorize(model, image, return_L=False, save=False):
+    """
+    Colorizes a black-and-white image.
 
-def preprocess_image(image):
+    :param model: Model to use for colorization
+    :param image: Grayscale image (PIL.Image)
+    :param return_L (optional): Returns grayscale version as well, used in visualization
+    :param save (optional): Saves the colorized image
 
-    image = np.array(image) / 255.0  # Normalize to [0,1]
-    lab = rgb2lab(image).astype("float32")  # Convert to Lab
-    
-    transform = transforms.ToTensor()
-    lab_tensor = transform(lab)
-    
-    L = lab_tensor[[0], ...] / 50. - 1.  # Scale L to [-1, 1]
-    ab = lab_tensor[[1, 2], ...] / 110.  # Scale ab to [-1, 1]
-
-    return L.unsqueeze(0), ab.unsqueeze(0)  # Add batch dimension
-
-def visualize_single(model, image, save=False):
+    :returns L (optional): L* channel (grayscale image)
+    :returns colorized: Colorized image
+    """
 
     model.net_G.eval()
     
-    # Preprocess image: Extract real L and ab channels
-    L, ab = preprocess_image(image)
-    
-    # Move to the correct device
+    # Convert to grayscale if not already
+    image = image.convert("L")  # Ensures it's grayscale
+    image = np.array(image).astype(np.float32)  # Convert to NumPy array
+
+    # Convert to L channel in Lab color space
+    L = rgb2lab(np.stack([image] * 3, axis=-1))[:, :, 0]  # Fake RGB for Lab conversion
+    L = (L / 50.0) - 1.0  # Normalize to [-1,1]
+
+    # Convert to Tensor and move to device
+    L = torch.tensor(L, dtype=torch.float32).unsqueeze(0).unsqueeze(0)  # Shape (1,1,H,W)
     device = next(model.parameters()).device
-    L, ab = L.to(device, dtype=torch.float), ab.to(device, dtype=torch.float)
+    L = L.to(device)
 
     # Prepare input format
-    data = {'L': L, 'ab': ab}
+    data = {'L': L, 'ab': torch.zeros_like(L).repeat(1, 2, 1, 1)}
 
     with torch.no_grad():
         model.setup_input(data)
@@ -129,7 +128,7 @@ def visualize_single(model, image, save=False):
 
     model.net_G.train()
     
-    # Get output
+    # Get output color channels
     fake_color = model.fake_color.detach()  # Model predicts ab in [-1,1]
     
     # Convert back to Lab scale
@@ -147,27 +146,12 @@ def visualize_single(model, image, save=False):
 
     # Convert Lab to RGB
     rgb_img = lab2rgb(lab_img)
-
-    # Convert original image to NumPy for visualization
-    original_img = np.array(image) / 255.0  
-
-    # Plot results
-    fig, ax = plt.subplots(1, 3, figsize=(15, 5))
-    ax[0].imshow(L_np, cmap='gray')
-    ax[0].set_title("Input Luminance (Grayscale)")
-    ax[0].axis("off")
-
-    ax[1].imshow(rgb_img)
-    ax[1].set_title("Colorized Output")
-    ax[1].axis("off")
-
-    ax[2].imshow(original_img)
-    ax[2].set_title("Original Image")
-    ax[2].axis("off")
-
-    plt.show()
+    rgb_img = (rgb_img * 255).astype(np.uint8)
     
     if save:
-        fig.savefig(f"colorized_{time.time()}.png")
+        Image.fromarray(rgb_img).save(f"colorized_{time()}.png")
 
-    return rgb_img  # Return colorized image as NumPy array
+    if return_L:
+        return L_np, rgb_img
+    else:
+        return rgb_img
