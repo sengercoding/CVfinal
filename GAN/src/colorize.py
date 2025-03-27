@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from torchvision import transforms
 from skimage.color import rgb2lab, lab2rgb
+from skimage import transform
 from PIL import Image
 from time import time
 
@@ -102,7 +103,29 @@ def test_colorizer(model, image, return_L = False, save=False):
     
     else:
         return rgb_img
+
+def test_colorizer_cnn(model, image, return_L = False, save=False):
+    img = transform.resize(image, (256, 256), anti_aliasing=True)
+    img = np.array(img) / 255.0  # Normalize to [0,1]
     
+
+    # Convert to LAB
+    lab = rgb2lab(img)
+
+    # Split into L and AB channels
+    L = lab[:,:,0] / 100.0  # Normalize L to [0, 1]
+    if L.shape != (256, 256):  # Debugging print
+        print(f"Unexpected L shape: {L.shape}")
+    L = L.reshape(1, 256, 256, 1)  # Add batch and channel dimensions
+    ab_pred = model.predict(L, batch_size=1)
+    lab_pred = np.zeros((256, 256, 3))
+    lab_pred[:,:,0] = L.squeeze() * 100
+    lab_pred[:,:,1:] = ab_pred.squeeze() * 128
+
+    rgb_pred = lab2rgb(lab_pred)
+    rgb_pred = transform.resize(rgb_pred, (512, 512), anti_aliasing=True)
+
+    return rgb_pred
 
 
 def colorize(model, image, return_L=False, save=False):
