@@ -46,9 +46,9 @@ def resize_rgb(img, output_size=(256, 256)):
 
     
 def colorize(G, img_bw):
-    assert img_bw.ndim == 2, "black and white image array needs to be two dimensional"
-    if img_bw.shape != (256,256):
-        img_bw = resize_bw(img_bw)
+    # assert img_bw.ndim == 2, "black and white image array needs to be two dimensional"
+    # if img_bw.shape != (256,256):
+    #     img_bw = resize_bw(img_bw)
     img_bw = Image.fromarray(img_bw).convert("RGB")
     img_yuv = rgb2yuv(img_bw)
     H,W,_ = img_yuv.shape
