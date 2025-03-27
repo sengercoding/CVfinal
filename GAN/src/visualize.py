@@ -28,8 +28,10 @@ def plot_finetuning_loss(save = True):
 def visualize(model1, model2, val_path, num_images = 4, seed=44, save = False):
     np.random.seed(seed)
     val_paths = glob(val_path + "/*.jpg")
-    val_images = np.random.choice(val_paths, 4, replace = False) # choose 4 random images
-    fig, axs = plt.subplots(num_images,4, figsize=(int(8*num_images/4),8))
+    val_images = np.random.choice(val_paths, num_images, replace = False) # choose 4 random images
+    rows = num_images
+    cols = 4
+    fig, axs = plt.subplots(num_images,4, figsize=(2*cols, 2*rows))
     axs[0,0].set_title("ground truth")
     axs[0,1].set_title("grayscale")
     axs[0,2].set_title("before finetuning")
