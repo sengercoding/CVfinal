@@ -33,6 +33,20 @@ def preprocess_image(image):
 
     return L.unsqueeze(0), ab.unsqueeze(0)  # Add batch dimension
 
+def preprocess_bw_image(image):
+
+    image = image.convert("RGB")
+    image = np.array(image) / 255.0  # Normalize to [0,1]
+    lab = rgb2lab(image).astype("float32")  # Convert to Lab
+    
+    transform = transforms.ToTensor()
+    lab_tensor = transform(lab)
+    
+    L = lab_tensor[[0], ...] / 50. - 1.  # Scale L to [-1, 1]
+    ab = lab_tensor[[1, 2], ...] / 110.  # Scale ab to [-1, 1]
+
+    return L.unsqueeze(0), ab.unsqueeze(0)  # Add batch dimension
+
 def test_colorizer(model, image, return_L = False, save=False):
     """
     Turns an image into grayscale and colorizes it
@@ -105,22 +119,14 @@ def colorize(model, image, return_L=False, save=False):
     """
 
     model.net_G.eval()
+
+    L, ab = preprocess_bw_image(image)
     
-    # Convert to grayscale if not already
-    image = image.convert("L")  # Ensures it's grayscale
-    image = np.array(image).astype(np.float32)  # Convert to NumPy array
-
-    # Convert to L channel in Lab color space
-    L = rgb2lab(np.stack([image] * 3, axis=-1))[:, :, 0]  # Fake RGB for Lab conversion
-    L = (L / 50.0) - 1.0  # Normalize to [-1,1]
-
-    # Convert to Tensor and move to device
-    L = torch.tensor(L, dtype=torch.float32).unsqueeze(0).unsqueeze(0)  # Shape (1,1,H,W)
     device = next(model.parameters()).device
     L = L.to(device)
 
     # Prepare input format
-    data = {'L': L, 'ab': torch.zeros_like(L).repeat(1, 2, 1, 1)}
+    data = {'L': L, 'ab': ab}
 
     with torch.no_grad():
         model.setup_input(data)
