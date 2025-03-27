@@ -43,7 +43,7 @@ def mean_chroma(model, val_path, size = 50, model_type = "GAN", seed = 33):
         if model_type == "GAN":
             colorized = test_colorizer(model, image)
         elif model_type == "CNN":
-            test_colorizer_cnn(model, image)
+            colorized = test_colorizer_cnn(model, image)
         max_val = np.max(colorized, axis = 2)
         min_val = np.min(colorized, axis = 2)
         mean_chroma = np.mean(max_val-min_val)

@@ -125,6 +125,9 @@ def test_colorizer_cnn(model, image, return_L = False, save=False):
     rgb_pred = lab2rgb(lab_pred)
     rgb_pred = transform.resize(rgb_pred, (512, 512), anti_aliasing=True)
 
+    if save:
+        Image.fromarray(rgb_pred).save(f"colorized_{time()}")
+
     return rgb_pred
 
 
