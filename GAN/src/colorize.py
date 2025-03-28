@@ -107,8 +107,8 @@ def test_colorizer(model, image, return_L = False, save=False):
 
 def test_colorizer_cnn(model, image, return_L = False, save=False):
 
-    img = transform.resize(image, (256, 256), anti_aliasing=True)
-    img = np.array(img) / 255.0  # Normalize to [0,1]
+    #img = transform.resize(image, (256, 256), anti_aliasing=True)
+    img = np.array(image) / 255.0  # Normalize to [0,1]
     
 
     # Convert to LAB
@@ -125,7 +125,6 @@ def test_colorizer_cnn(model, image, return_L = False, save=False):
     lab_pred[:,:,1:] = ab_pred.squeeze() * 128
 
     rgb_pred = lab2rgb(lab_pred)
-    rgb_pred = transform.resize(rgb_pred, (512, 512), anti_aliasing=True)
 
     if save:
         Image.fromarray(rgb_pred).save(f"colorized_{time()}")
