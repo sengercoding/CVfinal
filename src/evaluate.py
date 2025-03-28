@@ -17,13 +17,13 @@ def avg_deltaE(model, val_path, size = 50, model_type = "GAN", seed = 33):
     val_paths = np.random.choice(val_paths, size, replace = False)
     scores = []
     for path in tqdm(val_paths):
-        image = Image.open(path).convert("RGB")
-        image = np.array(image)
-        image_lab = rgb2lab(image)
+        image = Image.open(path).convert("RGB").resize((256,256), Image.BICUBIC)
         if model_type == "GAN":
             colorized = test_colorizer(model, image)
         elif model_type == "CNN":
             colorized = test_colorizer_cnn(model, image)
+        image = np.array(image)
+        image_lab = rgb2lab(image)
         colorized_lab = rgb2lab(colorized)
         scores.append(deltaE_ciede2000(image_lab, colorized_lab))
     scores = np.array(scores)
@@ -38,12 +38,12 @@ def mean_chroma(model, val_path, size = 50, model_type = "GAN", seed = 33):
     val_paths = np.random.choice(val_paths, size, replace = False)
     scores = []
     for path in tqdm(val_paths):
-        image = Image.open(path).convert("RGB")
-        image = np.array(image)
+        image = Image.open(path).convert("RGB").resize((256,256), Image.BICUBIC)
         if model_type == "GAN":
             colorized = test_colorizer(model, image)
         elif model_type == "CNN":
             colorized = test_colorizer_cnn(model, image)
+        image = np.array(image)
         max_val = np.max(colorized, axis = 2)
         min_val = np.min(colorized, axis = 2)
         mean_chroma = np.mean(max_val-min_val)
@@ -59,12 +59,12 @@ def mse(model, val_path, size = 50, model_type = "GAN", seed = 33):
     val_paths = np.random.choice(val_paths, size, replace = False)
     scores = []
     for path in tqdm(val_paths):
-        image = Image.open(path).convert("RGB")
-        image = np.array(image)
+        image = Image.open(path).convert("RGB").resize((256,256), Image.BICUBIC)
         if model_type == "GAN":
             colorized = test_colorizer(model, image)
         elif model_type == "CNN":
             colorized = test_colorizer_cnn(model, image)
+        image = np.array(image)
         scores.append(mean_squared_error(image,colorized))
     scores = np.array(scores)
     return np.mean(scores)

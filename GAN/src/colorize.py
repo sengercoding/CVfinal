@@ -36,7 +36,6 @@ def preprocess_image(image):
 
 def preprocess_bw_image(image):
 
-    image = image.convert("RGB")
     image = np.array(image) / 255.0  # Normalize to [0,1]
     lab = rgb2lab(image).astype("float32")  # Convert to Lab
     
@@ -62,6 +61,8 @@ def test_colorizer(model, image, return_L = False, save=False):
     """
 
     model.net_G.eval()
+
+    image = image.convert("RGB").resize((256,256), Image.BICUBIC)
     
     # Preprocess image: Extract real L and ab channels
     L, ab = preprocess_image(image)
@@ -105,6 +106,7 @@ def test_colorizer(model, image, return_L = False, save=False):
         return rgb_img
 
 def test_colorizer_cnn(model, image, return_L = False, save=False):
+
     img = transform.resize(image, (256, 256), anti_aliasing=True)
     img = np.array(img) / 255.0  # Normalize to [0,1]
     
@@ -145,6 +147,8 @@ def colorize(model, image, return_L=False, save=False):
     """
 
     model.net_G.eval()
+
+    image = image.resize((256,256), Image.BICUBIC)
 
     L, ab = preprocess_bw_image(image)
     
