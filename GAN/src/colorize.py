@@ -107,19 +107,15 @@ def test_colorizer(model, image, return_L = False, save=False):
 
 def test_colorizer_cnn(model, image, return_L = False, save=False):
 
-    img = image.convert("RGB").resize((256,256), Image.BICUBIC)
-
-    # img = transform.resize(image, (256, 256), anti_aliasing=True)
-    # img = np.array(img) / 255.0  # Normalize to [0,1]
+    #img = transform.resize(image, (256, 256), anti_aliasing=True)
+    img = np.array(image) / 255.0  # Normalize to [0,1]
     
+
     # Convert to LAB
     lab = rgb2lab(img)
 
     # Split into L and AB channels
     L = lab[:,:,0] / 100.0  # Normalize L to [0, 1]
-
-    L_np = L
-
     if L.shape != (256, 256):  # Debugging print
         print(f"Unexpected L shape: {L.shape}")
     L = L.reshape(1, 256, 256, 1)  # Add batch and channel dimensions
@@ -133,7 +129,7 @@ def test_colorizer_cnn(model, image, return_L = False, save=False):
     if save:
         Image.fromarray(rgb_pred).save(f"colorized_{time()}")
 
-    return L_np, rgb_pred
+    return rgb_pred
 
 
 def colorize(model, image, return_L=False, save=False):
