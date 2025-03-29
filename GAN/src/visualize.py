@@ -3,7 +3,7 @@ import numpy as np
 from glob import glob
 import matplotlib.pyplot as plt
 from PIL import Image
-from GAN.src.colorize import test_colorizer
+from GAN.src.colorize import test_colorizer, test_colorizer_cnn
 
 def plot_finetuning_loss(save = True):
     # load losses exported from google colab
@@ -49,3 +49,27 @@ def visualize(model1, model2, val_path, num_images = 4, seed=44, save = False):
     fig.tight_layout()
     if save:
         fig.savefig(f"results/faces_results_gan_{time()}.jpg")
+
+def visualize_cnn(model, val_path, num_images = 4, seed = 44, save = False):
+    np.random.seed(seed)
+    val_paths = glob(val_path + "/*.jpg")
+    val_images = np.random.choice(val_paths, num_images, replace = False) # choose 4 random images
+    rows = num_images
+    cols = 3
+    fig, axs = plt.subplots(num_images,4, figsize=(2*cols, 2*rows))
+    axs[0,0].set_title("ground truth")
+    axs[0,1].set_title("grayscale")
+    axs[0,2].set_title("cnn colorization")
+
+    for i in range(num_images):
+        for j in range(4):
+            axs[i,j].axis("off")
+        img = Image.open(val_images[i])
+        axs[i,0].imshow(img)
+        grayscale1, colorized1 = test_colorizer_cnn(model, img)
+        axs[i,1].imshow(grayscale1, cmap="gray") # Does a grayscale version need to be created if the colorized is just grayscale with color?
+        axs[i,2].imshow(colorized1)
+    fig.tight_layout()
+
+    if save:
+        fig.savefig(f"results/faces_results_cnn_{time()}.jpg")
