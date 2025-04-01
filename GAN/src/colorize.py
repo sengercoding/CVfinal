@@ -7,11 +7,19 @@ from skimage import transform
 from PIL import Image
 from time import time
 
+# All functions in this file are unused except for test_colorizer and test_colorizer_cnn
+
 def lab_to_rgb(L, ab):
     """
-    Takes a batch of images
-    """
+    Takes a batch of images and converts the LAB colorspace images to RGB colorspace images
+
+    :param L: channel L of a LAB image
+    :param ab: channels a and b of a LAB image
+
+    :returns np array of RGB images
     
+    """
+
     L = (L + 1.) * 50.
     ab = ab * 110.
     Lab = torch.cat([L, ab], dim=1).permute(0, 2, 3, 1).cpu().numpy()
@@ -19,9 +27,19 @@ def lab_to_rgb(L, ab):
     for img in Lab:
         img_rgb = lab2rgb(img)
         rgb_imgs.append(img_rgb)
+    
     return np.stack(rgb_imgs, axis=0)
 
 def preprocess_image(image):
+    """
+    Takes a batch of images and converts the LAB colorspace images to RGB colorspace images
+
+    :param L: channel L of a LAB image
+    :param ab: channels a and b of a LAB image
+
+    :returns np array of RGB images
+    
+    """
 
     image = np.array(image) / 255.0  # Normalize to [0,1]
     lab = rgb2lab(image).astype("float32")  # Convert to Lab
@@ -35,6 +53,10 @@ def preprocess_image(image):
     return L.unsqueeze(0), ab.unsqueeze(0)  # Add batch dimension
 
 def preprocess_bw_image(image):
+    """
+    Unused Function, marked for removal
+    
+    """
 
     image = np.array(image) / 255.0  # Normalize to [0,1]
     lab = rgb2lab(image).astype("float32")  # Convert to Lab
@@ -106,11 +128,22 @@ def test_colorizer(model, image, return_L = False, save=False):
         return rgb_img
 
 def test_colorizer_cnn(model, image, return_L = False, save=False):
+    """
+    Turns an image into grayscale and colorizes it using the CNN
+    A seperate function is needed because of differing model makeup
+    
+    :param model: model that is being used
+    :param image: image in PIL.Image format
+    :param return_L (optional): returns grayscale version as well, used in visualization
+    :param save (optional): saves the image
+
+    :returns L (optional): L* channel (grayscale image)
+    :returns colorized: colorized image
+    """
 
     #img = transform.resize(image, (256, 256), anti_aliasing=True)
     img = np.array(image) / 255.0  # Normalize to [0,1]
     
-
     # Convert to LAB
     lab = rgb2lab(img)
 

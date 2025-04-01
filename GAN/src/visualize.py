@@ -6,7 +6,15 @@ from PIL import Image
 from GAN.src.colorize import test_colorizer, test_colorizer_cnn
 
 def plot_finetuning_loss(save = True):
-    # load losses exported from google colab
+    """
+    Loads losses exported from Google Colab and plots them 
+
+    :param save=True: saves results to results/finetuning_loss.jpg if True
+
+    :returns None, but uses matplotlib to plot a graph
+    
+    """
+
     loss_G = np.load("results/loss_G.npy")
     loss_G_L1 = np.load("results/loss_G_L1.npy")
     loss_G_GAN = np.load("results/loss_G_GAN.npy")
@@ -26,6 +34,20 @@ def plot_finetuning_loss(save = True):
     plt.show()
 
 def visualize(model1, model2, val_path, num_images = 4, seed=44, save = False):
+    """
+    Visualizes two GAN models using a path of images to show the ground truth, grayscale, before finetuning, and after finetuning
+    for four images.
+
+    :param model1: the first GAN model used in colorization
+    :param model2: the second GAN model used in colorization
+    :param val_path: the path of images to visualize colorization on
+    :param num_images: the number of images the GAN colorization compares
+    :param seed: the set random seed for image colorization
+    :param save: saves results to results/face_results_gan_{current time}.jpg if True
+
+    :returns None, but uses matplotlib to plot a graph
+    
+    """
     np.random.seed(seed)
     val_paths = glob(val_path + "/*.jpg")
     val_images = np.random.choice(val_paths, num_images, replace = False) # choose 4 random images
@@ -51,6 +73,18 @@ def visualize(model1, model2, val_path, num_images = 4, seed=44, save = False):
         fig.savefig(f"results/faces_results_gan_{time()}.jpg")
 
 def visualize_cnn(model, val_path, num_images = 4, seed = 44, save = False):
+    """
+    Visualizes one CNN model using a path of images to show the ground truth, grayscale, and colorization for four images.
+
+    :param model: the CNN model used in colorization
+    :param val_path: the path of images to visualize colorization on
+    :param num_images: the number of images the CNN colorization compares
+    :param seed: the set random seed for image colorization
+    :param save: saves results to results/face_results_cnn_{current time}.jpg if True
+
+    :returns None, but uses matplotlib to plot a graph
+    
+    """
     np.random.seed(seed)
     val_paths = glob(val_path + "/*.jpg")
     val_images = np.random.choice(val_paths, num_images, replace = False) # choose 4 random images

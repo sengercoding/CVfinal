@@ -13,6 +13,13 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 SIZE = 256
 class ColorizationDataset(Dataset):
+    """
+    Takes a dataset of RGB images and splits them up into LAB images in the form of L lightness and ab channels
+
+    :param Dataset: dataset of RGB images
+    
+    """
+
     def __init__(self, paths, split='train'):
         if split == 'train':
             self.transforms = transforms.Compose([
@@ -40,8 +47,19 @@ class ColorizationDataset(Dataset):
     def __len__(self):
         return len(self.paths)
 
-
 def make_dataloaders(batch_size=16, n_workers=4, pin_memory=True, **kwargs): # A handy function to make our dataloaders
+    """
+    Takes a batch of images and converts the LAB colorspace images to RGB colorspace images
+
+    :param batch_size=16: the number of samples in the batch
+    :param n_workers=4: number of workers in dataloader
+    :param pin_memory=True: boolean for whether or not to use CUDA pinned memory
+    :param kwargs: passed to dataloader, like file paths or training split
+
+    :returns assembled PyTorch dataloader
+    
+    """
+
     dataset = ColorizationDataset(**kwargs)
     dataloader = DataLoader(dataset, batch_size=batch_size, num_workers=n_workers,
                             pin_memory=pin_memory)
@@ -49,6 +67,16 @@ def make_dataloaders(batch_size=16, n_workers=4, pin_memory=True, **kwargs): # A
 
 
 def init_weights(net, init='norm', gain=0.02):
+    """
+    Initiates the neural network weights with different initial parameters
+
+    :param net: the neural net to be initialized 
+    :param init='norm': neural net initialization method, either 'norm', 'xavier', or 'kaiming'
+    :param gain=0.02: scaling factor, only used in 'norm' and 'xavier'
+
+    :returns initialized neural network
+    
+    """
     
     def init_func(m):
         classname = m.__class__.__name__
@@ -70,15 +98,29 @@ def init_weights(net, init='norm', gain=0.02):
     print(f"model initialized with {init} initialization")
     return net
 
-
 def init_model(model, device):
+    """
+    Initiates the model's weights with a given device   
+
+    :param mode: the neural net to be initialized 
+    :param device: the hardware to be used in CUDA computation
+
+    :returns initialized model
+    
+    """
+    
     model = model.to(device)
     model = init_weights(model)
     return model
 
-
-
 class GANLoss(nn.Module):
+    """
+    Creates the generator and discriminator for the GAN model
+
+    :returns GAN model with either vanilla loss or LSGAN loss variants
+    
+    """
+    
     def __init__(self, gan_mode='vanilla', real_label=1.0, fake_label=0.0):
         super().__init__()
         self.register_buffer('real_label', torch.tensor(real_label))
@@ -89,6 +131,15 @@ class GANLoss(nn.Module):
             self.loss = nn.MSELoss()
     
     def get_labels(self, preds, target_is_real):
+        """
+        Gets labels for the loss computation, either real or fake labels
+
+        :param preds: discriminator predictions
+        :param target_is_real: determines if the labels are for real or fake data
+
+        :returns target labels for GAN's loss   
+        
+        """
         if target_is_real:
             labels = self.real_label
         else:
@@ -102,6 +153,13 @@ class GANLoss(nn.Module):
 
 
 class UnetBlock(nn.Module):
+    """
+    Part of the Unet that determines encoder and decoder parts of the GAN with the connections between them.
+    Utilizes a leakyRELU for the encoder, RELU for the decoder and tanh for the final block.
+    Forward pass sends the input through self.model.
+    
+    """
+
     def __init__(self, nf, ni, submodule=None, input_c=None, dropout=False,
                  innermost=False, outermost=False):
         super().__init__()
@@ -143,6 +201,13 @@ class UnetBlock(nn.Module):
 
 
 class Unet(nn.Module):
+    """
+    Builds the Unet using the UnetBlocks in the prior class.
+    This net contains 8 base filters with a feature depth of 512.
+    Forward pass sends the input through self.model.
+
+    """
+
     def __init__(self, input_c=1, output_c=2, n_down=8, num_filters=64):
         super().__init__()
         unet_block = UnetBlock(num_filters * 8, num_filters * 8, innermost=True)
@@ -159,6 +224,11 @@ class Unet(nn.Module):
     
 
 class PatchDiscriminator(nn.Module):
+    """
+    Builds the PatchGAN discriminator that creates layers of filters off of the image.
+
+    """
+    
     def __init__(self, input_c, num_filters=64, n_down=3):
         super().__init__()
         model = [self.get_layers(input_c, num_filters, norm=False)]
@@ -179,6 +249,16 @@ class PatchDiscriminator(nn.Module):
         return self.model(x)
 
 def build_res_unet(n_input=1, n_output=2, size=256):
+    """
+    Constructs the pretrained ResNet with the build UNet
+
+    :param n_input=1: number of input channels for the resnet body
+    :param n_output=2: number of output channels for the model
+    :param size=256: output image dimensions (in this example 256x256)
+
+    :returns built ResNet/UNet neural network
+    
+    """
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     body = create_body(resnet18(), pretrained=True, n_in=n_input, cut=-2)
     net_G = DynamicUnet(body, n_output, (size, size)).to(device)
@@ -187,6 +267,27 @@ def build_res_unet(n_input=1, n_output=2, size=256):
 
 
 class MainModel(nn.Module):
+    """
+    Builds the complete GAN system including generator, discriminator, losses, and optimizers.
+    forward() generates fake color
+    backward_D() computes the discriminator
+    backward_G() computes the generator
+    optimize() updates generator and discriminator
+
+    """
+
+
+    """
+    Batches data to CUDA for faster memory management and sets up network
+
+    :param net_G=None: neural network
+    :param lr_G=2e-4: generator learning rate
+    :param lr_D=2e-4: discriminator learning rate
+    :param beta1=0.5: Adam beta 1
+    :param beta2=0.999: Adam beta 2
+    :param lambda_L1=100.: L1 loss weights
+    
+    """
     def __init__(self, net_G=None, lr_G=2e-4, lr_D=2e-4, 
                  beta1=0.5, beta2=0.999, lambda_L1=100.):
         super().__init__()
