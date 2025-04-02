@@ -2,7 +2,8 @@ import os
 import numpy as np
 from glob import glob
 from PIL import Image
-from GAN.src.colorize import test_colorizer, test_colorizer_cnn
+from GAN.src.colorize import test_colorizer
+from CNN.src.colorize import test_colorizer_cnn
 from tqdm import tqdm
 from skimage.color import rgb2lab, deltaE_ciede2000
 
@@ -14,7 +15,7 @@ def avg_deltaE(model, val_path, size = 50, model_type = "GAN", seed = 33):
         raise ValueError("size is larger than number of images")
     val_paths = np.random.choice(val_paths, size, replace = False)
     scores = []
-    for path in tqdm(val_paths):
+    for path in tqdm(val_paths, desc = f"evaluating {model_type}"):
         image = Image.open(path).convert("RGB").resize((256,256), Image.BICUBIC)
         if model_type == "GAN":
             colorized = test_colorizer(model, image)
