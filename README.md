@@ -6,6 +6,23 @@ To run the demo of the trained CNN and GAN, utilize the demo.ipynb Jupyter Noteb
 
 If you wish to train the CNN model, see the CNN-faces.ipynb file. If you wish to train, pre-train, or tune the GAN model, see the GAN/finetune_GAN.ipynb file.
 
+## Installation
+clone this repository
+
+```sh
+git clone git@
+cd CVfinal
+```
+
+install requirements:
+via conda (recommended)
+```sh
+conda env create -f environment.yml
+```
+
+or create a venv using pip and requirements.txt
+
+
 ## CNN Face Colorization from the Demo
 
 ![CNN Faces Demo](results/CNN-demo-faces.png)
