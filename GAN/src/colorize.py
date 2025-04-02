@@ -67,7 +67,7 @@ def preprocess_bw_image(image):
 
     return L.unsqueeze(0), ab.unsqueeze(0)  # Add batch dimension
 
-def test_colorizer(model, image, return_L = False, save=False):
+def test_colorizer_gan(model, image, return_L = False, save=False):
     """
     Turns an image into grayscale and colorizes it
     
@@ -126,7 +126,7 @@ def test_colorizer(model, image, return_L = False, save=False):
         return rgb_img
 
 
-def colorize(model, image, return_L=False, save=False):
+def colorize_gan(model, image, return_L=False, save=False):
     """
     Colorizes a black-and-white image.
 

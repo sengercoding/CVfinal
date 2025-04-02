@@ -3,7 +3,7 @@ import numpy as np
 from glob import glob
 import matplotlib.pyplot as plt
 from PIL import Image
-from GAN.src.colorize import test_colorizer
+from GAN.src.colorize import test_colorizer_gan
 
 def plot_finetuning_loss(save = True):
     """
@@ -33,6 +33,7 @@ def plot_finetuning_loss(save = True):
         fig.savefig("results/finetuning_loss.jpg", dpi = 400)
     plt.show()
 
+
 def visualize_gan(model1, model2, val_path, num_images = 4, seed=44, save = False):
     """
     Visualizes two GAN models using a path of images to show the ground truth, grayscale, before finetuning, and after finetuning
@@ -53,7 +54,7 @@ def visualize_gan(model1, model2, val_path, num_images = 4, seed=44, save = Fals
     val_images = np.random.choice(val_paths, num_images, replace = False) # choose 4 random images
     rows = num_images
     cols = 4
-    fig, axs = plt.subplots(num_images,4, figsize=(2*cols, 2*rows))
+    fig, axs = plt.subplots(num_images,4, figsize=(cols,rows))
     axs[0,0].set_title("ground truth")
     axs[0,1].set_title("grayscale")
     axs[0,2].set_title("before finetuning")
@@ -63,8 +64,8 @@ def visualize_gan(model1, model2, val_path, num_images = 4, seed=44, save = Fals
             axs[i,j].axis("off")
         img = Image.open(val_images[i])
         axs[i,0].imshow(img)
-        grayscale1, colorized1 = test_colorizer(model1, img, return_L=True)
-        colorized2 = test_colorizer(model2, img, return_L=False)
+        grayscale1, colorized1 = test_colorizer_gan(model1, img, return_L=True)
+        colorized2 = test_colorizer_gan(model2, img, return_L=False)
         axs[i,1].imshow(grayscale1, cmap="gray")
         axs[i,2].imshow(colorized1)
         axs[i,3].imshow(colorized2)

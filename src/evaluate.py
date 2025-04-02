@@ -2,7 +2,7 @@ import os
 import numpy as np
 from glob import glob
 from PIL import Image
-from GAN.src.colorize import test_colorizer
+from GAN.src.colorize import test_colorizer_gan
 from CNN.src.colorize import test_colorizer_cnn
 from tqdm import tqdm
 from skimage.color import rgb2lab, deltaE_ciede2000
