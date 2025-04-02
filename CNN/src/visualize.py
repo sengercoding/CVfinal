@@ -1,3 +1,10 @@
+from time import time
+import numpy as np
+from glob import glob
+import matplotlib.pyplot as plt
+from PIL import Image
+from CNN.src.colorize import test_colorizer_cnn
+
 def visualize_cnn(model, val_path, num_images = 4, seed = 44, save = False):
     """
     Visualizes one CNN model using a path of images to show the ground truth, grayscale, and colorization for four images.

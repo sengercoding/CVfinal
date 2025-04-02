@@ -33,7 +33,7 @@ def plot_finetuning_loss(save = True):
         fig.savefig("results/finetuning_loss.jpg", dpi = 400)
     plt.show()
 
-def visualize(model1, model2, val_path, num_images = 4, seed=44, save = False):
+def visualize_gan(model1, model2, val_path, num_images = 4, seed=44, save = False):
     """
     Visualizes two GAN models using a path of images to show the ground truth, grayscale, before finetuning, and after finetuning
     for four images.

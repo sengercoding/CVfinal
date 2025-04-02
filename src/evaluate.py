@@ -65,6 +65,7 @@ def mse(model, val_path, size = 50, model_type = "GAN", seed = 33):
         elif model_type == "CNN":
             colorized = test_colorizer_cnn(model, image)
         image = np.array(image)
-        scores.append(mean_squared_error(image,colorized))
+        error = np.mean((image - colorized)**2)
+        scores.append(error)
     scores = np.array(scores)
     return np.mean(scores)
