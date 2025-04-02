@@ -8,12 +8,15 @@ If you wish to train the CNN model, see the CNN-faces.ipynb file. If you wish to
 
 ## Installation
 Requires Python version 3.10
+
 Clone this repository
+
 ```sh
 git clone git@github.com:sengercoding/CVfinal.git cv_final_group23
 cd cv_final_group23
 ```
-install requirements via conda:
+
+Install requirements via conda:
 ```sh
 conda env create -f environment.yml
 ```
