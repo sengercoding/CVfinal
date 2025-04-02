@@ -29,6 +29,39 @@ pip install -r requirements.txt
 ![CNN Faces Demo](results/colorizations_1743624451.446718.jpg)
 
 
+## Project Organization
+    
+.
+├── CNN
+│   ├── CNN-faces.ipynb           <- here the CNN was trained in Colab
+│   ├── checkpoints
+│   │   ├── colorization-faces-unet-0.009.h5
+│   │   ├── colorization_model-small-eccv-100e.pth
+│   │   └── colorization_model_best.h5
+│   └── src
+│       ├── colorize.py               <- functions for colorization
+│       ├── model.py                  <- CNN model builder
+│       └── visualize.py              <- plots CNN outputs
+├── GAN
+│   ├── finetune_GAN.ipynb            <- here the GAN was trained in Colab
+|   ├── checkpoints                   <- here model checkpoints are saved
+│   └── src
+│       ├── colorize.py                <- functions for colorization
+│       ├── get_gan_checkpoints.py     <- downloads checkpoints from google drive if they do not exist
+│       ├── model.py                   <- GAN model
+│       └── visualize.py               <- plots GAN outputs and losses
+├── README.md
+├── data
+│   └── faces_val             <- 2000 images for validation and testing
+├── demo.ipynb                <- demo of functions
+├── logs
+├── requirements.txt          <- required libraries
+├── results                   <- visualizations and arrays from training
+├── src
+│   ├── evaluate.py          <- eval functions
+│   └── visualize.py         <- visulaize CNN and GAN together
+
+
 
 ## License Notices
 Our demo utilizes code and practices from the following repositories: 
