@@ -35,6 +35,7 @@ def test_colorizer_cnn(model, image, return_L = False, save=False):
     lab_pred[:,:,1:] = ab_pred.squeeze() * 128
 
     rgb_pred = lab2rgb(lab_pred)
+    rgb_pred = (rgb_pred * 255).astype(np.uint8)
 
     if save:
         Image.fromarray(rgb_pred).save(f"colorized_{time()}")
