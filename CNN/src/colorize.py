@@ -29,7 +29,7 @@ def test_colorizer_cnn(model, image, return_L = False, save=False):
     if L.shape != (256, 256):  # Debugging print
         print(f"Unexpected L shape: {L.shape}")
     L = L.reshape(1, 256, 256, 1)  # Add batch and channel dimensions
-    ab_pred = model.predict(L, batch_size=1)
+    ab_pred = model.predict(L, batch_size=1, verbose=0)
     lab_pred = np.zeros((256, 256, 3))
     lab_pred[:,:,0] = L.squeeze() * 100
     lab_pred[:,:,1:] = ab_pred.squeeze() * 128
