@@ -1,4 +1,4 @@
-name: 3dcv-students
+name: cv-final-group23
 channels:
   - conda-forge
   - defaults
@@ -292,4 +292,4 @@ dependencies:
       - websocket-client==1.4.1
       - wrapt==1.17.2
       - zipp==3.8.1
-prefix: /Users/alassanediagne/miniconda3/envs/3dcv-students
+prefix: /Users/alassanediagne/miniconda3/envs/cv-final-group23
