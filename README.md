@@ -16,19 +16,18 @@ git clone git@github.com:sengercoding/CVfinal.git cv_final_group23
 cd cv_final_group23
 ```
 
-Install requirements via conda:
+Create venv and install requirements:
 ```sh
-conda env create -f environment.yml
+python3 -m venv .
+source bin/activate
+pip install -r requirements.txt
 ```
 
 
-## CNN Face Colorization from the Demo
+## Example colorizations (you can produce your own in demo.ipynb)
 
-![CNN Faces Demo](results/CNN-demo-faces.png)
+![CNN Faces Demo](/Users/alassanediagne/Documents/Uni/Master/WS24_25/ComputerVision/CVfinal/results/colorizations_1743624451.446718.jpg)
 
-## GAN Face Colorization from the Demo
-
-![GAN Faces Demo](results/GAN-demo-faces.png)
 
 
 ## License Notices
