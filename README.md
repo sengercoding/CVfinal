@@ -18,7 +18,7 @@ cd cv_final_group23
 
 Create venv and install requirements:
 ```sh
-python3 -m venv .
+python3.10 -m venv .
 source bin/activate
 pip install -r requirements.txt
 ```
@@ -26,7 +26,7 @@ pip install -r requirements.txt
 
 ## Example colorizations (you can produce your own in demo.ipynb)
 
-![CNN Faces Demo](/Users/alassanediagne/Documents/Uni/Master/WS24_25/ComputerVision/CVfinal/results/colorizations_1743624451.446718.jpg)
+![CNN Faces Demo](results/colorizations_1743624451.446718.jpg)
 
 
 
