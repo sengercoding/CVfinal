@@ -1,7 +1,7 @@
 import os
 import gdown
 
-def get_checkpoints():
+def get_gan_checkpoints():
     if not os.path.exists("GAN/src/checkpoints"):
         print("Creating checkpoints folder")
         os.makedirs("GAN/src/checkpoints")
