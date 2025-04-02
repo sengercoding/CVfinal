@@ -3,7 +3,7 @@ import numpy as np
 from glob import glob
 import matplotlib.pyplot as plt
 from PIL import Image
-from GAN.src.colorize import test_colorizer, test_colorizer_cnn
+from GAN.src.colorize import test_colorizer
 
 def plot_finetuning_loss(save = True):
     """

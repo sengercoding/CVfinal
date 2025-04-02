@@ -1,12 +1,10 @@
 import os
 import numpy as np
 from glob import glob
-import matplotlib.pyplot as plt
 from PIL import Image
 from GAN.src.colorize import test_colorizer, test_colorizer_cnn
 from tqdm import tqdm
 from skimage.color import rgb2lab, deltaE_ciede2000
-from skimage.metrics import mean_squared_error
 
 
 def avg_deltaE(model, val_path, size = 50, model_type = "GAN", seed = 33):

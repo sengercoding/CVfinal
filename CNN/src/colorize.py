@@ -1,9 +1,5 @@
-import torch
 import numpy as np
-import matplotlib.pyplot as plt
-from torchvision import transforms
 from skimage.color import rgb2lab, lab2rgb
-from skimage import transform
 from PIL import Image
 from time import time
 
