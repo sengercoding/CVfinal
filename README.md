@@ -32,17 +32,14 @@ pip install -r requirements.txt
 ## Project Organization
     
     
-    ├── CNN
-    │   ├── CNN-faces.ipynb           <- here the CNN was trained in Colab
-    │   ├── checkpoints
-    │   │   ├── colorization-faces-unet-0.009.h5
-    │   │   ├── colorization_model-small-eccv-100e.pth
-    │   │   └── colorization_model_best.h5
+    ├── CNN                               <- contains all the CNN-only related files
+    │   ├── CNN-faces.ipynb               <- here the CNN was trained in Colab
+    │   ├── checkpoints                   <- here model checkpoints are saved
     │   └── src
     │       ├── colorize.py               <- functions for colorization
     │       ├── model.py                  <- CNN model builder
     │       └── visualize.py              <- plots CNN outputs
-    ├── GAN
+    ├── GAN                               <- contains all the CNN-only related files
     │   ├── finetune_GAN.ipynb            <- here the GAN was trained in Colab
     |   ├── checkpoints                   <- here model checkpoints are saved
     │   └── src
