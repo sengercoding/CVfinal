@@ -10,7 +10,7 @@ If you wish to train the CNN model, see the CNN-faces.ipynb file. If you wish to
 clone this repository
 
 ```sh
-git clone git@
+git clone git@github.com:sengercoding/CVfinal.git
 cd CVfinal
 ```
 
