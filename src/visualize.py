@@ -8,8 +8,7 @@ from GAN.src.colorize import test_colorizer_gan
 
 def visualize(cnn, gan1, gan2, val_path, num_images = 4, seed=44, save = False):
     """
-    Visualizes two GAN models using a path of images to show the ground truth, grayscale, before finetuning, and after finetuning
-    for four images.
+    Visualizes CNN and two GAN models using a path of images to show the ground truth, grayscale, before finetuning, and after finetuning.
 
     :param model1: the first GAN model used in colorization
     :param model2: the second GAN model used in colorization
@@ -17,9 +16,6 @@ def visualize(cnn, gan1, gan2, val_path, num_images = 4, seed=44, save = False):
     :param num_images: the number of images the GAN colorization compares
     :param seed: the set random seed for image colorization
     :param save: saves results to results/face_results_gan_{current time}.jpg if True
-
-    :returns None, but uses matplotlib to plot a graph
-    
     """
     np.random.seed(seed)
     val_paths = glob(val_path + "/*.jpg")

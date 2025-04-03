@@ -161,16 +161,16 @@ def colorize_gan(model, image, return_L=False, save=False):
     fake_color = model.fake_color.detach()  # Model predicts ab in [-1,1]
     
     # Convert back to Lab scale
-    L_real = (L + 1) * 50.0  # Convert L from [-1,1] to [0,100]
-    fake_color = fake_color * 110.0  # Convert ab from [-1,1] to [-110,110]
+    L_real = (L + 1) * 50.0
+    fake_color = fake_color * 110.0
 
     # Convert to NumPy
-    L_np = L_real[0][0].cpu().numpy()  # Shape: (H, W)
-    fake_ab_np = fake_color[0].cpu().numpy().transpose(1, 2, 0)  # Shape: (H, W, 2)
+    L_np = L_real[0][0].cpu().numpy()
+    fake_ab_np = fake_color[0].cpu().numpy().transpose(1, 2, 0)
 
     # Construct full Lab image
     lab_img = np.zeros((L_np.shape[0], L_np.shape[1], 3))
-    lab_img[:, :, 0] = L_np  # Luminance
+    lab_img[:, :, 0] = L_np
     lab_img[:, :, 1:] = fake_ab_np  # Predicted color
 
     # Convert Lab to RGB

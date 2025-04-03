@@ -9,6 +9,21 @@ from skimage.color import rgb2lab, deltaE_ciede2000
 
 
 def avg_deltaE(model, val_path, size = 50, model_type = "GAN", seed = 33):
+    """
+    calculate average deltaE error of a model on validation set
+
+    :param model: tensorflow CNN or torch GAN
+    :param val_path: path to validation set
+    :param size: number of images to perform validation on
+    :param model_type: GAN or CNN
+    :param seed: random seed
+
+    :return: average deltaE error
+
+    Note: This is obviously not the most efficient implementation
+     (Lab conversion even though output of network is in Lab) but
+     provides good ease of use
+    """
     np.random.seed(seed)
     val_paths = glob(os.path.join(val_path, "*.jpg"))
     if len(val_paths) < size:
@@ -30,6 +45,17 @@ def avg_deltaE(model, val_path, size = 50, model_type = "GAN", seed = 33):
 
 
 def mean_chroma(model, val_path, size = 50, model_type = "GAN", seed = 33):
+    """
+     calculate average mean chroma of an image on a dataset
+
+     :param model: tensorflow CNN or torch GAN
+     :param val_path: path to validation set
+     :param size: number of images to perform validation on
+     :param model_type: GAN or CNN
+     :param seed: random seed
+
+     :return: average mean chroma
+     """
     np.random.seed(seed)
     val_paths = glob(os.path.join(val_path, "*.jpg"))
     if len(val_paths) < size:
@@ -50,7 +76,19 @@ def mean_chroma(model, val_path, size = 50, model_type = "GAN", seed = 33):
     scores = np.array(scores)
     return np.mean(scores)
 
+
 def mse(model, val_path, size = 50, model_type = "GAN", seed = 33):
+    """
+    calculate average MSE of model on the validation set
+
+    :param model: tensorflow CNN or torch GAN
+    :param val_path: path to validation set
+    :param size: number of images to perform validation on
+    :param model_type: GAN or CNN
+    :param seed: random seed
+
+    :return: average MSE
+    """
     np.random.seed(seed)
     val_paths = glob(os.path.join(val_path, "*.jpg"))
     if len(val_paths) < size:
