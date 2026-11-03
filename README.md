@@ -12,14 +12,14 @@ Requires Python version >=3.10
 Clone this repository
 
 ```sh
-git clone git@github.com:sengercoding/CVfinal.git cv_final_group23
-cd cv_final_group23
+git clone https://github.com/sengercoding/image-colorization.git
+cd image-colorization
 ```
 
 Create venv and install requirements:
 ```sh
 python3.10 -m venv .
-source bin/activate
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
