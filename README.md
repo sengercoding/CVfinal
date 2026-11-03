@@ -7,7 +7,7 @@ To run the demo of the trained CNN and GAN, utilize the demo.ipynb Jupyter Noteb
 If you wish to train the CNN model, see the CNN-faces.ipynb file. If you wish to train, pre-train, or tune the GAN model, see the GAN/finetune_GAN.ipynb file.
 
 ## Installation
-Requires Python version 3.10
+Requires Python version >=3.10
 
 Clone this repository
 
@@ -48,8 +48,6 @@ pip install -r requirements.txt
     │       ├── model.py                   <- GAN model
     │       └── visualize.py               <- plots GAN outputs and losses
     ├── README.md
-    ├── data
-    │   └── faces_val             <- 2000 images for validation and testing
     ├── demo.ipynb                <- demo of functions
     ├── logs
     ├── requirements.txt          <- required libraries
