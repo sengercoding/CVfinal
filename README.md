@@ -7,19 +7,19 @@ To run the demo of the trained CNN and GAN, utilize the demo.ipynb Jupyter Noteb
 If you wish to train the CNN model, see the CNN-faces.ipynb file. If you wish to train, pre-train, or tune the GAN model, see the GAN/finetune_GAN.ipynb file.
 
 ## Installation
-Requires Python version 3.10
+Requires Python version >=3.10
 
 Clone this repository
 
 ```sh
-git clone git@github.com:sengercoding/CVfinal.git cv_final_group23
-cd cv_final_group23
+git clone https://github.com/sengercoding/image-colorization.git
+cd image-colorization
 ```
 
 Create venv and install requirements:
 ```sh
 python3.10 -m venv .
-source bin/activate
+source .venv/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -48,8 +48,6 @@ pip install -r requirements.txt
     │       ├── model.py                   <- GAN model
     │       └── visualize.py               <- plots GAN outputs and losses
     ├── README.md
-    ├── data
-    │   └── faces_val             <- 2000 images for validation and testing
     ├── demo.ipynb                <- demo of functions
     ├── logs
     ├── requirements.txt          <- required libraries
